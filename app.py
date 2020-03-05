@@ -3,7 +3,7 @@ import numpy as np
 import sqlalchemy
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
-from sqlalchemy import create_engine, func
+from sqlalchemy import create_engine, func, MetaData
 
 from flask import Flask, jsonify
 
@@ -15,17 +15,19 @@ engine = create_engine("sqlite:///database.sqlite")
 
 # reflect an existing database into a new model
 Base = automap_base()
-# reflect the tables
+# reflect the tablesx
 Base.prepare(engine, reflect=True)
 
 # Save reference to the table
-Astronaut = Base.classes.astronaut
+#Fact = Base.classes.merged_file
+metadata = MetaData()
+metadata.reflect(engine)
+
 
 #################################################
 # Flask Setup
 #################################################
 app = Flask(__name__)
-
 
 #################################################
 # Flask Routes
@@ -33,30 +35,16 @@ app = Flask(__name__)
 
 @app.route("/")
 def welcome():
+    print(len(Base.classes))
+    print("lol")
     """List all available api routes."""
     return (
         f"Available Routes:<br/>"
-        f"/astronaut"
+        f"/api/v1.0/names<br/>"
+        f"/api/v1.0/passengers"
     )
 
-
-@app.route("astronaut")
-def names():
-    # Create our session (link) from Python to the DB
-    session = Session(engine)
-
-    """Return a list of all passenger names"""
-    # Query all passengers
-    results = session.query(Astronaut.name).all()
-
-    session.close()
-
-    # Convert list of tuples into normal list
-    all_names = list(np.ravel(results))
-
-    return jsonify(all_names)
-
-
+ 
 
 
 if __name__ == '__main__':
